@@ -1,0 +1,57 @@
+---
+title: "Thunder Analytics Problem"
+author: '@jonmichaelstroh'
+date: "11/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+```
+
+### import data
+```{r}
+shots_data <- read.csv("~/DSAC Projects/Thunder-Analytics-Problem/shots_data.csv")
+```
+
+### label type of shot
+```{r}
+shots_data <- shots_data %>% mutate(type  = if_else((x > 22 | x < (-22)) & y <= 7.8, 'C3', if_else(sqrt((x)^2 + (y)^2) > 23.75, 'NC3', '2PT')))
+
+view(shots_data)
+```
+
+### shots by team
+```{r}
+shot_data_A <- shots_data %>% filter(team == 'Team A')
+```
+
+### shot distributions
+```{r}
+shots_data %>% group_by(team, type) %>% summarise(percent = n()/(nrow(shots_data)/2))
+```
+
+** There may be an error in the effective field goal percentage equation in the assignment instructions: I believe instead of (fg + (.5 * 3fg))/fga it is (fg +(1.5 * 3fg))/fga because effective field goal percentage takes into account the extra value of the three pointer (it is worth 50% more than 2s not 50% of a 2).  I calculated effective field goal percent with the second definition.**
+
+### effective field goal percentage
+```{r}
+two <- shots_data %>% group_by(team, type) %>% filter(type == '2PT') %>% summarise(efg = sum(fgmade == 1)/n())
+three <- shots_data %>% group_by(team, type) %>% filter(type != '2PT') %>% summarise(efg = (sum(fgmade == 1)*1.5)/n())
+
+efg <- rbind(two, three)
+
+arrange(efg, team)
+```
+
+
+
+
+
+
+
